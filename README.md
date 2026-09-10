@@ -124,7 +124,6 @@ Your files remain on your device during processing.
 
 ![ImageKit Homepage](./screenshots/homepage.png)
 
-> Replace `screenshots/homepage.png` with the actual homepage screenshot.
 
 ---
 
@@ -132,15 +131,6 @@ Your files remain on your device during processing.
 
 ![Image Enhancer](./screenshots/enhancer.png)
 
-> Replace `screenshots/enhancer.png` with the actual enhancer screenshot.
-
----
-
-### AI Enhancement
-
-![AI Enhancement](./screenshots/ai-enhancement.png)
-
-> Replace `screenshots/ai-enhancement.png` with the actual AI enhancement screenshot.
 
 ---
 
@@ -148,7 +138,6 @@ Your files remain on your device during processing.
 
 ![Image Converter](./screenshots/converter.png)
 
-> Replace `screenshots/converter.png` with the actual converter screenshot.
 
 ---
 
@@ -156,7 +145,6 @@ Your files remain on your device during processing.
 
 ![Image Cropper](./screenshots/cropper.png)
 
-> Replace `screenshots/cropper.png` with the actual cropper screenshot.
 
 ---
 
@@ -164,7 +152,6 @@ Your files remain on your device during processing.
 
 ![Image Resizer](./screenshots/resizer.png)
 
-> Replace `screenshots/resizer.png` with the actual resizer screenshot.
 
 ---
 
