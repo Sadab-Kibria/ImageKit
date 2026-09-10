@@ -1,15 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ExportFormat, ExportOptions, ImageMetadata, EnhancementSettings, TargetImageFormat } from '../lib/image/types';
+import { ExportFormat, ExportOptions, ImageMetadata, EnhancementSettings } from '../lib/image/types';
 import { RealESRGANScale } from '../lib/image/ai/types';
-import { exportEnhancedImage, sanitizeFilename, canvasToBlob, downloadBlob } from '../lib/image/export';
+import { exportEnhancedImage, sanitizeFilename } from '../lib/image/export';
 import { Download, X, Check, ShieldCheck, Sliders, AlertCircle, Sparkles } from 'lucide-react';
 
 interface DownloadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  sourceImage: HTMLImageElement | null;
+  sourceImage: HTMLImageElement | HTMLCanvasElement | ImageBitmap | null;
   settings: EnhancementSettings;
   metadata: ImageMetadata | null;
   isAIEnhanced?: boolean;
@@ -24,7 +24,6 @@ export const DownloadModal: React.FC<DownloadModalProps> = ({
   settings,
   metadata,
   isAIEnhanced = false,
-  aiEnhancedCanvas = null,
   aiScale = 2,
 }) => {
   const [format, setFormat] = useState<ExportFormat>('image/webp');
@@ -35,8 +34,8 @@ export const DownloadModal: React.FC<DownloadModalProps> = ({
 
   if (!isOpen || !sourceImage || !metadata) return null;
 
-  const exportWidth = isAIEnhanced && aiEnhancedCanvas ? aiEnhancedCanvas.width : metadata.width;
-  const exportHeight = isAIEnhanced && aiEnhancedCanvas ? aiEnhancedCanvas.height : metadata.height;
+  const exportWidth = sourceImage.width;
+  const exportHeight = sourceImage.height;
   const filenameSuffix = isAIEnhanced ? `enhanced-${aiScale}x` : 'enhanced';
   const currentFilename = sanitizeFilename(metadata.name, format, filenameSuffix);
 
@@ -45,18 +44,13 @@ export const DownloadModal: React.FC<DownloadModalProps> = ({
       setIsExporting(true);
       setErrorMessage(null);
 
-      if (isAIEnhanced && aiEnhancedCanvas) {
-        // Export the high-resolution AI enhanced canvas
-        const blob = await canvasToBlob(aiEnhancedCanvas, format as TargetImageFormat, quality);
-        downloadBlob(blob, currentFilename);
-      } else {
-        const options: ExportOptions = {
-          format,
-          quality,
-          filename: metadata.name,
-        };
-        await exportEnhancedImage(sourceImage, settings, options);
-      }
+      const options: ExportOptions = {
+        format,
+        quality,
+        filename: metadata.name,
+        suffix: filenameSuffix,
+      };
+      await exportEnhancedImage(sourceImage, settings, options);
 
       setIsSuccess(true);
       setTimeout(() => {

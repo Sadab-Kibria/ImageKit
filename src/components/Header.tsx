@@ -81,7 +81,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
           {/* 100% Local Privacy Badge */}
           <div
-            className="hidden xl:flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium cursor-help group relative"
+            className="hidden xl:flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs cursor-default font-medium group relative"
           >
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
             <span>100% Local Privacy</span>

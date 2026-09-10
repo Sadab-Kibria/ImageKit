@@ -329,7 +329,7 @@ export const EnhancementControls: React.FC<EnhancementControlsProps> = ({
                     <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                     <span>Real-ESRGAN {aiScale}× Active</span>
                   </span>
-                  <span className="text-[10px] text-emerald-700">Drag slider to compare</span>
+                  <span className="text-[10px] font-medium text-emerald-700">Editable · All controls active</span>
                 </div>
 
                 <button

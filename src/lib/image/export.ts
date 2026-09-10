@@ -72,7 +72,7 @@ export async function canvasToBlob(
  * and triggers a client-side file download.
  */
 export async function exportEnhancedImage(
-  sourceImage: HTMLImageElement | ImageBitmap,
+  sourceImage: HTMLImageElement | ImageBitmap | HTMLCanvasElement,
   settings: EnhancementSettings,
   options: ExportOptions
 ): Promise<void> {
@@ -112,7 +112,7 @@ export async function exportEnhancedImage(
   const blob = await canvasToBlob(canvas, options.format as TargetImageFormat, options.quality);
 
   // 6. Generate sanitized file name
-  const safeFilename = sanitizeFilename(options.filename, options.format, 'enhanced');
+  const safeFilename = sanitizeFilename(options.filename, options.format, options.suffix || 'enhanced');
 
   // 7. Trigger browser-native local download
   downloadBlob(blob, safeFilename);

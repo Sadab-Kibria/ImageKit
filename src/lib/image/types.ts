@@ -48,6 +48,7 @@ export interface ExportOptions {
   format: ExportFormat;
   quality: number; // 0.1 to 1.0
   filename: string;
+  suffix?: string;
 }
 
 export interface Preset {

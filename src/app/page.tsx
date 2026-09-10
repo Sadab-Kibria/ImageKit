@@ -27,8 +27,9 @@ import { getAIRateLimitState } from '../lib/image/ai/rate-limit';
 import { Download, Sparkles } from 'lucide-react';
 
 export default function Home() {
-  // Image State
+  // Image State: Original uploaded source & Current editable source
   const [sourceImage, setSourceImage] = useState<HTMLImageElement | null>(null);
+  const [editableSource, setEditableSource] = useState<HTMLImageElement | HTMLCanvasElement | null>(null);
   const [metadata, setMetadata] = useState<ImageMetadata | null>(null);
 
   // Settings & History State
@@ -77,6 +78,7 @@ export default function Home() {
     }
 
     setSourceImage(image);
+    setEditableSource(image);
     setMetadata(meta);
     setSettings(DEFAULT_SETTINGS);
     setHistory([DEFAULT_SETTINGS]);
@@ -105,8 +107,9 @@ export default function Home() {
   };
 
   // Re-process image when settings change (Throttle via requestAnimationFrame)
+  // Works seamlessly for both original and AI-upscaled editable sources
   const processPreview = useCallback((currentSettings: EnhancementSettings) => {
-    if (!rawPreviewDataRef.current || !enhancedCanvas || isAIEnhanced) return;
+    if (!rawPreviewDataRef.current || !enhancedCanvas) return;
 
     if (animFrameIdRef.current) {
       cancelAnimationFrame(animFrameIdRef.current);
@@ -131,7 +134,7 @@ export default function Home() {
         });
       }
     });
-  }, [enhancedCanvas, isAIEnhanced]);
+  }, [enhancedCanvas]);
 
   // Handle single setting change
   const handleSettingChange = (key: keyof EnhancementSettings, value: number) => {
@@ -156,7 +159,7 @@ export default function Home() {
     pushToHistory(next);
   };
 
-  // Reset all settings
+  // Reset all slider settings back to default on current editable image
   const handleReset = () => {
     setSettings(DEFAULT_SETTINGS);
     processPreview(DEFAULT_SETTINGS);
@@ -208,12 +211,35 @@ export default function Home() {
         abortSignal: controller.signal,
       });
 
+      // 1. Store the AI-upscaled result as the current editable source
       setAiEnhancedCanvas(outCanvas);
+      setEditableSource(outCanvas);
       setIsAIEnhanced(true);
       setRateLimitState(getAIRateLimitState());
 
-      // Update enhanced canvas preview
-      setEnhancedCanvas(outCanvas);
+      // 2. Create high-performance preview proxy from the AI-upscaled output
+      const { ctx: aiProxyCtx, width: proxyW, height: proxyH } = createPreviewCanvas(outCanvas, 1400);
+      const aiRawData = aiProxyCtx.getImageData(0, 0, proxyW, proxyH);
+      rawPreviewDataRef.current = aiRawData;
+
+      // 3. Set the original comparison canvas scaled to the proxy dimensions for flawless Before/After comparison
+      const origComparisonCanvas = document.createElement('canvas');
+      origComparisonCanvas.width = proxyW;
+      origComparisonCanvas.height = proxyH;
+      const origCompCtx = origComparisonCanvas.getContext('2d')!;
+      origCompCtx.imageSmoothingEnabled = true;
+      origCompCtx.imageSmoothingQuality = 'high';
+      origCompCtx.drawImage(sourceImage, 0, 0, proxyW, proxyH);
+      setOriginalCanvas(origComparisonCanvas);
+
+      // 4. Update the enhanced canvas preview with current user adjustments applied on the AI image
+      const enhCanvas = document.createElement('canvas');
+      enhCanvas.width = proxyW;
+      enhCanvas.height = proxyH;
+      const enhCtx = enhCanvas.getContext('2d')!;
+      const processed = defaultImageProcessor.process(aiRawData, settings);
+      enhCtx.putImageData(processed, 0, 0);
+      setEnhancedCanvas(enhCanvas);
       setViewMode('split');
     } catch (err: unknown) {
       if (err instanceof DOMException && err.name === 'AbortError') {
@@ -239,13 +265,14 @@ export default function Home() {
     setAIProgress(null);
   };
 
-  // Reset AI Enhancement
+  // Reset AI Enhancement back to original photo resolution
   const handleResetAIEnhance = () => {
     if (!sourceImage) return;
     setIsAIEnhanced(false);
     setAiEnhancedCanvas(null);
+    setEditableSource(sourceImage);
 
-    // Re-create preview canvas
+    // Re-create preview canvas from original sourceImage
     const { canvas: origCanvas, ctx: origCtx, width, height } = createPreviewCanvas(sourceImage, 1400);
     const rawData = origCtx.getImageData(0, 0, width, height);
     rawPreviewDataRef.current = rawData;
@@ -254,11 +281,11 @@ export default function Home() {
     enhCanvas.width = width;
     enhCanvas.height = height;
     const enhCtx = enhCanvas.getContext('2d')!;
-    enhCtx.putImageData(rawData, 0, 0);
+    const processed = defaultImageProcessor.process(rawData, settings);
+    enhCtx.putImageData(processed, 0, 0);
 
     setOriginalCanvas(origCanvas);
     setEnhancedCanvas(enhCanvas);
-    processPreview(settings);
   };
 
   // Global Keyboard Shortcuts
@@ -292,6 +319,7 @@ export default function Home() {
             aiAbortControllerRef.current = null;
           }
           setSourceImage(null);
+          setEditableSource(null);
           setMetadata(null);
           setOriginalCanvas(null);
           setEnhancedCanvas(null);
@@ -395,7 +423,7 @@ export default function Home() {
       <DownloadModal
         isOpen={isDownloadOpen}
         onClose={() => setIsDownloadOpen(false)}
-        sourceImage={sourceImage}
+        sourceImage={editableSource || sourceImage}
         settings={settings}
         metadata={metadata}
         isAIEnhanced={isAIEnhanced}

@@ -83,7 +83,7 @@ export const defaultImageProcessor = new CanvasImageProcessor();
  * Utility to create a downscaled preview canvas while maintaining aspect ratio.
  */
 export function createPreviewCanvas(
-  source: HTMLImageElement | ImageBitmap,
+  source: HTMLImageElement | ImageBitmap | HTMLCanvasElement,
   maxDimension: number = 1400
 ): { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; width: number; height: number; scale: number } {
   let { width, height } = source;
